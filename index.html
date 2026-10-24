@@ -12,7 +12,8 @@
 <style>:root{box-sizing:border-box}html{margin:0}[hidden]:not([hidden=until-found i]){display:none!important}
 html.shell{padding:0!important}html.shell,html.shell body{height:100%;overflow:hidden}
 html.shell body{position:fixed;inset:0;padding:0;margin:0}
-html.shell #app{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;max-width:none;margin:0;padding:var(--sat) max(16px,calc((100vw - 528px)/2)) 120px}</style>
+html.shell #app{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;max-width:none;margin:0;padding:0 max(16px,calc((100vw - 528px)/2)) 120px}
+html.shell #app::before{content:'';display:block;height:var(--sat)}</style>
 <title>Dziennik Serii</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
 <style>
@@ -1526,7 +1527,7 @@ function acSettings(){
   const nf='style="max-width:120px;text-align:left;padding-inline:12px"';
   const sec=ui.setSec||'';let h='';
   if(!sec){
-    return '<div class="fld"><span class="lbl">'+t('subL')+'</span>'+segOpt('sub',meta.sub?'1':'0',onOff)+'</div>'+['lu','look','train','body'].map(k=>'<button class="rcnt" data-act="set-sec" data-v="'+k+'" style="display:block;width:100%"><span class="pn">'+t(SECT[k])+' <span class="chev">›</span></span></button>').join('')+'<p class="hint" style="margin-top:24px">v34 · '+(window.__ins?('inset '+window.__ins.raw.join('/')+' → '+window.__ins.t+'/'+window.__ins.b+' · standalone '+window.__ins.sa+' · '):'')+innerWidth+'×'+innerHeight+' · screen '+screen.width+'×'+screen.height+'</p>';
+    return '<div class="fld"><span class="lbl">'+t('subL')+'</span>'+segOpt('sub',meta.sub?'1':'0',onOff)+'</div>'+['lu','look','train','body'].map(k=>'<button class="rcnt" data-act="set-sec" data-v="'+k+'" style="display:block;width:100%"><span class="pn">'+t(SECT[k])+' <span class="chev">›</span></span></button>').join('')+'<p class="hint" style="margin-top:24px">v36 · '+(window.__ins?('inset '+window.__ins.raw.join('/')+' → '+window.__ins.t+'/'+window.__ins.b+' · standalone '+window.__ins.sa+' · '):'')+innerWidth+'×'+innerHeight+' · screen '+screen.width+'×'+screen.height+' · vv '+(window.visualViewport?Math.round(window.visualViewport.height):'-')+' · tabsGap '+(function(){const e=document.querySelector('#tabs .in');return e?Math.round(innerHeight-e.getBoundingClientRect().bottom):'-'})()+'</p>';
   }
   if(sec==='lu'){
     h+='<div class="fld"><span class="lbl">'+t('lang')+'</span><div class="seg"><button data-act="lang" data-l="pl" aria-pressed="'+(lang==='pl')+'">Polski</button><button data-act="lang" data-l="en" aria-pressed="'+(lang==='en')+'">English</button></div></div>';
