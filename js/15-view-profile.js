@@ -30,16 +30,18 @@ function vAcSub() {
   }
   if (k === "notes" || k === "goals") {
     const L = [...meta.notes].sort((a, b) => String(b.date).localeCompare(String(a.date)));
-    let h = '<header class="top cen"><button class="icon back" data-act="acsub-back" aria-label="' + esc(t("back")) + '">←</button><h1>' + t(tt) + '</h1><button class="icon" data-act="' + (k === "notes" ? "note-new" : "goal-new") + '" aria-label="' + esc(t(k === "notes" ? "noteNew" : "goalNew")) + '">' + ICON.plus + "</button></header>";
+    let h = '<header class="top cen two"><button class="icon back" data-act="acsub-back" aria-label="' + esc(t("back")) + '">←</button><h1>' + t(tt) + '</h1><span class="hbtns">' + (k === "notes" && L.length && !ui.noteSel ? '<button class="icon" data-act="notes-del-on" aria-label="' + esc(t("noteDelMode")) + '">' + ICON.trash + "</button>" : "") + '<button class="icon" data-act="' + (k === "notes" ? "note-new" : "goal-new") + '" aria-label="' + esc(t(k === "notes" ? "noteNew" : "goalNew")) + '">' + ICON.plus + "</button></span></header>";
     if (k === "goals") return h + (meta.sub ? acGoals(true) : lockCard());
     if (!L.length) return h + '<p class="empty">' + t("homeNone") + "</p>";
-    return h + '<ul class="rows">' + L.map((n) => '<li class="row"><button class="hmain" data-act="note-edit" data-id="' + n.id + '"><div class="ttl"><span class="pn">' + t("noteTag") + '</span> <span class="tag">' + fmtDate(n.date) + '</span></div><div class="sub" style="white-space:pre-line;overflow-wrap:anywhere">' + esc(n.text.length > 200 ? n.text.slice(0, 200) + "…" : n.text) + '</div></button><button class="icon" data-act="note-rm" data-id="' + n.id + '" aria-label="' + esc(t("delShort")) + '">' + ICON.trash + "</button></li>").join("") + "</ul>";
+    const dm = ui.noteSel;
+    if (dm) h += '<div class="cmpbar"><span class="sub grow">' + t("noteSelN", { n: dm.length }) + '</span><button class="btn sm" data-act="notes-del-go"' + (dm.length ? "" : ' disabled style="opacity:.4"') + ">" + t("delShort") + '</button><button class="link" data-act="notes-del-off">' + t("cancel") + "</button></div>";
+    return h + '<ul class="rows">' + L.map((n) => '<li class="row">' + (dm ? '<button class="gchk' + (dm.indexOf(n.id) >= 0 ? " on" : "") + '" data-act="notes-pick" data-id="' + n.id + '" aria-pressed="' + (dm.indexOf(n.id) >= 0) + '" aria-label="' + esc(t("delShort")) + '">' + (dm.indexOf(n.id) >= 0 ? ICON.check : "") + "</button>" : "") + '<button class="hmain" data-act="' + (dm ? "notes-pick" : "note-edit") + '" data-id="' + n.id + '"><div class="ttl"><span class="pn">' + t("noteTag") + '</span> <span class="tag">' + fmtDate(n.date) + '</span></div><div class="sub" style="white-space:pre-line;overflow-wrap:anywhere">' + esc(n.text.length > 200 ? n.text.slice(0, 200) + "…" : n.text) + "</div></button></li>").join("") + "</ul>";
   }
   if (k === "exnew") return '<header class="top exh cen"><button class="icon back" data-act="cx-back" aria-label="' + esc(t("back")) + '">←</button><h1>' + t("cexNew") + "</h1><span></span></header>" + cxPage();
   if (k === "ex" || k === "exd") {
     return '<header class="top exh cen"><button class="icon back" data-act="' + (k === "exd" ? "exd-back" : "acsub-back") + '" aria-label="' + esc(t("back")) + '">←</button><h1>' + esc(k === "exd" ? ui.rvEx : t("acEx")) + "</h1>" + (k === "ex" ? '<button class="icon" data-act="exd-new" aria-label="' + esc(t("cexNew")) + '">' + ICON.plus + "</button>" : "<span></span>") + "</header>" + (k === "ex" ? acExercises() : acExd());
   }
-  return '<header class="top cen"><button class="icon back" data-act="acsub-back" aria-label="' + esc(t("back")) + '">←</button><h1>' + t(tt) + "</h1>" + (k === "body" ? '<button class="icon" data-act="meas-add-open" aria-label="' + esc(t("measT")) + '">' + ICON.plus + "</button>" : "<span></span>") + "</header>" + { history: acHistory, body: acBody, stats: rvMonth }[k]();
+  return '<header class="top cen"><button class="icon back" data-act="acsub-back" aria-label="' + esc(t("back")) + '">←</button><h1>' + t(tt) + "</h1>" + (k === "body" ? '<button class="icon" data-act="meas-add-open" aria-label="' + esc(t("measT")) + '">' + ICON.plus + "</button>" : k === "history" ? '<button class="icon" data-act="h-menu" aria-label="' + esc(t("more")) + '">⋯</button>' : "<span></span>") + "</header>" + { history: acHistory, body: acBody, stats: rvMonth }[k]();
 }
 function histFilter() {
   const f = ui.hf, q = norm(f.q);
@@ -58,8 +60,9 @@ function histFilter() {
 }
 function histListHtml() {
   const f = ui.hf, q = norm(f.q);
-  const ss = histFilter().map((x) => ({ k: "s", d: x.date, x }));
-  const nn = f.plan || f.ex ? [] : meta.notes.filter((n) => (!f.month || String(n.date).slice(0, 7) === f.month) && (!q || norm(n.text).indexOf(q) >= 0)).map((x) => ({ k: "n", d: x.date, x }));
+  const sh = f.show || "all";
+  const ss = (sh === "n" ? [] : histFilter()).map((x) => ({ k: "s", d: x.date, x }));
+  const nn = sh === "s" || f.plan || f.ex ? [] : meta.notes.filter((n) => (!f.month || String(n.date).slice(0, 7) === f.month) && (!q || norm(n.text).indexOf(q) >= 0)).map((x) => ({ k: "n", d: x.date, x }));
   const list = ss.concat(nn).sort((a, b) => String(b.d).localeCompare(String(a.d)) || (b.k === "n" ? -1 : 1));
   if (!list.length) return '<p class="empty">' + t("hNone") + "</p>";
   const cmp = ui.cmp, PRH = prInfo().by;
@@ -93,7 +96,7 @@ function acHistory() {
   const f = ui.hf, cmp = ui.cmp, names = exNamesAll();
   const months = [...new Set(sessions.map((s) => String(s.date).slice(0, 7)))].sort().reverse();
   const opt = (v, l, cur) => '<option value="' + esc(v) + '"' + (String(cur) === String(v) ? " selected" : "") + ">" + esc(l) + "</option>";
-  let h = '<div class="fld" style="margin-top:14px"><input type="search" data-k="h-q" value="' + esc(f.q) + '" placeholder="' + esc(t("hSearch")) + '" aria-label="' + esc(t("hSearch")) + '" autocomplete="off"></div>';
+  let h = '<div class="fld sea" style="margin-top:14px"><input type="search" data-k="h-q" value="' + esc(f.q) + '" placeholder="' + esc(t("hSearch")) + '" aria-label="' + esc(t("hSearch")) + '" autocomplete="off"><span class="lupa" aria-hidden="true">' + ICON.search + "</span></div>";
   h += '<div class="filters"><select data-k="h-plan" aria-label="' + esc(t("hAllPlans")) + '">' + opt("", t("hAllPlans"), f.plan) + opt("_none", t("hNoPlan"), f.plan) + meta.plans.map((p) => opt(p.id, p.name, f.plan)).join("") + '</select><select data-k="h-ex" aria-label="' + esc(t("hAllEx")) + '">' + opt("", t("hAllEx"), f.ex) + names.map((n) => opt(n, n, f.ex)).join("") + '</select><select data-k="h-month" aria-label="' + esc(t("hAllMonths")) + '">' + opt("", t("hAllMonths"), f.month) + months.map((m) => opt(m, monthLabel(m), f.month)).join("") + "</select></div>";
   h += '<div class="cmpbar">' + (cmp.on ? '<span class="sub grow">' + t("cmpSel", { n: cmp.ids.length }) + '</span><button class="btn sm" data-act="cmp-go"' + (cmp.ids.length === 2 ? "" : ' disabled style="opacity:.4"') + ">" + t("cmpGo") + '</button><button class="link" data-act="cmp-off">' + t("cancel") + "</button>" : '<button class="link" data-act="cmp-on">' + t("cmpOn") + '</button><span class="grow"></span><button class="link" data-act="note-new">' + t("noteNew") + "</button>") + "</div>";
   return h + '<div id="hlist">' + histListHtml() + "</div>";
@@ -109,7 +112,7 @@ function last5Html(A, unit, col) {
   let h = '<div class="sechead" style="margin-top:18px"><span class="lbl">' + t("last5") + "</span></div>";
   for (let i = A.length - 1; i >= Math.max(0, A.length - 5); i--) {
     const d = i > 0 ? Math.round((A[i].v - A[i - 1].v) * 10) / 10 : null;
-    h += '<div class="wl"><span class="v">' + fmtN(A[i].v) + " " + unit + "</span>" + (d === null ? "<span></span>" : dlt(d, unit, col)) + '<span class="sub grow" style="text-align:right">' + fmtDate(A[i].date) + "</span></div>";
+    h += '<div class="wl nob' + (i === Math.max(0, A.length - 5) ? " lastl" : "") + '"><span class="v">' + fmtN(A[i].v) + " " + unit + "</span>" + (d === null ? "<span></span>" : dlt(d, unit, col)) + '<span class="sub grow" style="text-align:right">' + fmtDate(A[i].date) + "</span></div>";
   }
   return h;
 }
@@ -250,7 +253,13 @@ function vDetail() {
   let h = '<header class="top"><button class="icon back" data-act="detail-back" aria-label="' + esc(t("back")) + '">←</button><button class="btn sm" data-act="detail-edit">' + t("edit") + "</button></header>";
   h += '<div class="dtl-h"><h2>' + esc(s.name) + " – " + fmtDate(s.date) + kindTag(s) + '</h2><button class="icon" data-act="remark" data-id="' + s.id + '" aria-label="' + esc(t("remark")) + '">' + ICON.pen + "</button></div>";
   if (s.remark) h += '<div class="rem" style="margin-bottom:6px;overflow-wrap:anywhere">' + esc(s.remark) + "</div>";
-  h += '<div class="sub">' + (tr ? esc(tr) + (dur ? " (" + esc(dur) + ")" : "") + " · " : "") + cnt("ex", nEx) + " · " + cnt("set", st.sets) + (st.vol ? " · " + fmtKg(st.vol) : "") + (PR ? ' · <b class="prt">' + t("prTag") + " ×" + PR.n + "</b>" : "") + "</div>";
+  {
+    const hasT = isFinite(s.startedAt), hasE = hasT && isFinite(s.endedAt) && s.endedAt >= s.startedAt;
+    const l1 = hasT ? hm(s.startedAt) + (hasE ? " – " + hm(s.endedAt) : "") + (dur ? " (" + dur + ")" : "") : dur || "";
+    if (l1) h += '<div class="dline">' + esc(l1) + "</div>";
+    h += '<div class="dline sec">' + esc(cnt("ex", nEx) + ", " + cnt("set", st.sets) + (st.vol ? ", " + fmtKg(st.vol) : "")) + "</div>";
+    if (PR) h += '<div class="sub" style="margin-top:6px"><b class="prt">' + t("prTag") + " ×" + PR.n + "</b></div>";
+  }
   if (s.warm && s.warm.length) h += '<div class="exd"><div class="pn">' + t("warmT") + "</div>" + s.warm.map((w) => '<div class="sl"><i>' + (w.done ? "✓" : "○") + "</i><span>" + esc(w.name) + (w.note ? " · " + esc(w.note) : "") + "</span></div>").join("") + "</div>";
   h += s.exercises.map((ex, i) => {
     const prevSS = i > 0 && s.exercises[i - 1].ss, inG = !!ex.ss || prevSS;
@@ -264,6 +273,6 @@ function vDetail() {
   h += '<button class="btn block" style="margin-top:18px" data-act="detail-repeat" data-id="' + s.id + '">' + t("repeatW") + "</button>";
   if (s.planId && meta.plans.some((p) => p.id === s.planId && !p.archived)) h += '<button class="btn ghost block" style="margin-top:10px" data-act="dated-new" data-id="' + s.planId + '">' + t("datedNew") + "</button>";
   h += '<button class="btn ghost block" style="margin-top:10px" data-act="detail-toplan" data-id="' + s.id + '">' + t("toPlan") + "</button>";
-  h += '<button class="link danger" style="margin-top:18px" data-act="detail-del">' + t("detDel") + "</button>";
+  h += '<button class="link danger" style="display:block;margin:22px auto 0" data-act="detail-del">' + t("detDel") + "</button>";
   return h;
 }

@@ -4,7 +4,7 @@
 const STD = [
   { k: "squat", n: "stdSquat", re: /back squat|przysiad ze sztang|przysiad.*sztang|^przysiad$|^squat$/i, m: [0.75, 1.25, 1.75, 2.25, 2.75] },
   { k: "bench", n: "stdBench", re: /bench press|wyciskanie sztangi le[żz]/i, m: [0.5, 0.9, 1.25, 1.6, 2] },
-  { k: "dead", n: "stdDead", re: /deadlift|martwy ci[aą]g/i, m: [1, 1.5, 2, 2.5, 3] },
+  { k: "dead", n: "stdDead", re: /^(deadlift \(barbell\)|martwy ci[aą]g \(sztang[aię]\))$/i, m: [1, 1.5, 2, 2.5, 3] },
   { k: "ohp", n: "stdOhp", re: /ohp|overhead|military|nad g[łl]ow|[żz]o[łl]nierskie/i, m: [0.35, 0.6, 0.9, 1.1, 1.4] },
   { k: "pull", n: "stdPull", re: /podci[aą]g|pull[\s-]?up|chin[\s-]?up/i, r: [0, 3, 10, 16, 21] }
 ];

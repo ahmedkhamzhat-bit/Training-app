@@ -221,6 +221,7 @@ document.addEventListener("input", (e) => {
       const i = +el.dataset.d, v = el.value;
       if (v === "") delete meta.schedule[i];
       else if (v === "rest") meta.schedule[i] = { k: "rest" };
+      else if (v === "free") meta.schedule[i] = { k: "free" };
       else meta.schedule[i] = { k: "plan", id: v.slice(2) };
       persistMeta();
       closeSheets();
@@ -259,6 +260,7 @@ document.addEventListener("input", (e) => {
     case "mdate2":
       if (el.value) {
         ui.mDate = el.value;
+        ui.mVals = measFill(el.value);
         render();
       }
       break;

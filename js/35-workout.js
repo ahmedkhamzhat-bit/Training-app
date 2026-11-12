@@ -40,6 +40,9 @@ async function finishSession() {
   go("account", "acsub");
   toast(t("saved", { n: c.name + " – " + fmtDate(c.date) }));
 }
+function editSnap(a) {
+  return JSON.stringify([a.name, a.date, a.tStart, a.tEnd, a.note, a.remark, a.exercises]);
+}
 function discardSession() {
   active = null;
   persistActive();

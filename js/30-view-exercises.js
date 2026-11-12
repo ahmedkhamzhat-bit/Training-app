@@ -27,32 +27,30 @@ function exFilterMatch(n) {
   return exMatch(n, ui.exQ2, ui.exEq, ui.exMu, ui.exTy);
 }
 function exRowsHtml() {
-  const used = exUsedKeys(), names = exLibNames(), raw = (ui.exQ2 || "").trim();
-  const filt = !!(norm(raw) || (ui.exEq || []).length || (ui.exMu || []).length || (ui.exTy || []).length);
+  const names = exLibNames(), filt = !!(norm(ui.exQ2 || "") || (ui.exEq || []).length || (ui.exMu || []).length || (ui.exTy || []).length);
   const alpha = names.filter(exFilterMatch).sort((a, b) => a.localeCompare(b, lang));
-  const row = (n) => exRowHtml(n, { act: "exd-open", used });
-  let h = "";
-  if (raw && !names.some((n) => ckey(n) === ckey(raw))) h += '<button class="row pkr" data-act="cex-open" data-n="' + esc(raw) + '"><span class="grow pn" style="color:var(--acc)">+ ' + esc(t("cexAdd", { n: raw })) + "</span></button>";
+  const row = (n) => exRowHtml(n, { act: "exd-open" });
+  let rec = "";
   if (!filt) {
     const have = {};
     names.forEach((n) => {
       have[ckey(n)] = n;
     });
-    const rec = [];
+    const L = [];
     (meta.recentEx || []).forEach((n) => {
       const d = have[ckey(n)];
-      if (d && rec.indexOf(d) < 0) rec.push(d);
+      if (d && L.indexOf(d) < 0) L.push(d);
     });
-    if (rec.length) h += '<div class="sechead"><span class="lbl">' + t("exRecentH") + "</span></div>" + rec.slice(0, 8).map(row).join("");
+    if (L.length) rec = '<div class="sechead"><span class="lbl">' + t("exRecentH") + "</span></div>" + L.slice(0, 8).map(row).join("");
   }
-  return h + (alpha.length ? exGrouped(alpha, row) : '<p class="empty">' + t("exNone") + "</p>");
+  return rec + (alpha.length ? '<div class="sechead"><span class="lbl">' + t("hAllEx") + "</span></div>" + alpha.map(row).join("") : '<p class="empty">' + t("exNone") + "</p>");
 }
 function exFiltBtns() {
   const a = (ui.exEq || []).length, b = (ui.exMu || []).length, c = (ui.exTy || []).length;
   return '<button class="btn ghost" data-act="exf-ty">' + t("exfTy") + (c ? " (" + c + ")" : "") + '</button><button class="btn ghost" data-act="exf-eq">' + t("exfEq") + (a ? " (" + a + ")" : "") + '</button><button class="btn ghost" data-act="exf-mu">' + t("exfMu") + (b ? " (" + b + ")" : "") + "</button>";
 }
 function acExercises() {
-  return '<div class="fld" style="margin-top:6px"><input type="search" data-k="ex2-q" value="' + esc(ui.exQ2 || "") + '" placeholder="' + esc(t("exSearchPh")) + '" aria-label="' + esc(t("exSearchPh")) + '" autocomplete="off"></div><div class="fbtns" id="exfb">' + exFiltBtns() + '</div><button class="row pkr" data-act="std-open" style="margin-top:8px"><span class="grow pn">' + t("stdH") + '</span><span class="chev">›</span></button><div id="exl2">' + exRowsHtml() + "</div>";
+  return '<div class="fld sea" style="margin-top:6px"><input type="search" data-k="ex2-q" value="' + esc(ui.exQ2 || "") + '" placeholder="' + esc(t("exSearchPh")) + '" aria-label="' + esc(t("exSearchPh")) + '" autocomplete="off"><span class="lupa" aria-hidden="true">' + ICON.search + '</span></div><div class="fbtns" id="exfb">' + exFiltBtns() + '</div><button class="row pkr" data-act="std-open" style="margin-top:8px"><span class="grow pn">' + t("stdH") + '</span><span class="chev">›</span></button><div id="exl2">' + exRowsHtml() + "</div>";
 }
 const FCI = '<svg viewBox="0 0 48 48" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + EXICO.dumb + "</svg>";
 function filtCount(pre) {
@@ -74,7 +72,7 @@ function exFiltSheet(w, pre) {
 }
 function openExFilt(w) {
   const sw = sheet('<div class="bigh"><h2>' + t(FT[w]) + '</h2><button class="icon xb" data-act="sheet-close" aria-label="' + esc(t("close")) + '">✕</button></div><div id="exfBody" class="bigb" data-w="' + w + '">' + exFiltSheet(w) + '</div><div class="btns" style="padding:12px 16px"><button class="btn ghost" data-act="exf-clear" data-w="' + w + '">' + t("exfClear") + '</button><button class="btn" id="fDone" data-act="sheet-close">' + t("exfDone") + "</button></div>");
-  sw.querySelector(".sh").classList.add("big");
+  sw.querySelector(".sh").classList.add("big", "fit");
 }
 function cxSum(w) {
   const c = ui.cx;
@@ -108,7 +106,7 @@ function exdOpen(n) {
 function exdHist(name) {
   const k = ckey(name), L = [...sessions].sort(byDateAsc).reverse().map((s) => ({ s, e: s.exercises.find((e) => ckey(e.name) === k && !e.skipped && e.sets.some((q) => pn(q.val) > 0)) })).filter((x) => x.e);
   if (!L.length) return '<p class="empty">' + t("exNoData") + "</p>";
-  return L.map((x) => '<button class="rcnt" data-act="detail" data-id="' + esc(x.s.id) + '" style="display:block;width:100%"><span class="pn">' + fmtDate(x.s.date) + " · " + esc(x.s.name) + ' <span class="chev">›</span></span><div class="sl">' + x.e.sets.filter((q) => pn(q.val) > 0).map((q) => "<span>" + esc(compactSet(x.e, q)) + "</span>").join("") + "</div></button>").join("");
+  return L.map((x) => '<button class="rcnt" data-act="detail" data-id="' + esc(x.s.id) + '" style="display:block;width:100%"><span class="pn">' + esc(x.s.name) + " - " + fmtDate(x.s.date) + ' <span class="chev">›</span></span><div class="sl">' + x.e.sets.filter((q) => pn(q.val) > 0).map((q) => "<span>" + esc(compactSet(x.e, q)) + "</span>").join("") + "</div></button>").join("");
 }
 function exdHow(name) {
   const li = libInfo(name), k = ckey(name);
@@ -178,9 +176,17 @@ function openNote(id) {
     if (i) i.focus();
   }, 60);
 }
+function measFill(d) {
+  const o = {};
+  MEAS.forEach((m) => {
+    const e = (meta.meas[m[0]] || []).find((q) => q.date === d);
+    if (e) o[m[0]] = fmtRaw(mvv(m, e.v));
+  });
+  return o;
+}
 function vMeasAdd() {
   const d = ui.mDate || todayStr();
-  return '<header class="top"><button class="icon back" data-act="meas-back" aria-label="' + esc(t("back")) + '">←</button><button class="btn sm" data-act="meas-save-all">' + t("save") + "</button></header><h2>" + t("measT") + '</h2><div class="fld"><label class="lbl" for="mdDate2">' + t("noteDate") + '</label><input id="mdDate2" type="date" data-k="mdate2" value="' + esc(d) + '"></div><div style="margin-top:8px">' + MEAS.map((m) => {
+  return '<header class="top"><button class="icon back" data-act="meas-back" aria-label="' + esc(t("back")) + '">←</button><button class="btn sm" data-act="meas-save-all">' + t("save") + "</button></header><h2>" + t("measT") + '</h2><div class="fld"><label class="mdt"><span>' + t("noteDate") + ": <b>" + esc(new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", year: "numeric" }).format(dateObj(d))) + '</b></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><input id="mdDate2" type="date" data-df="1" data-k="mdate2" aria-label="' + esc(t("noteDate")) + '" value="' + esc(d) + '"></label></div><div style="margin-top:8px">' + MEAS.map((m) => {
     const v = ui.mVals && ui.mVals[m[0]] !== void 0 ? ui.mVals[m[0]] : "";
     const L = (meta.meas[m[0]] || []).slice().sort(byDateAsc), last = L.length ? fmtRaw(mvv(m, L[L.length - 1].v)) : "—";
     return '<div class="mrow2" style="cursor:default"><span class="grow">' + esc(t(m[1])) + '</span><input class="num" inputmode="decimal" data-k="mval" data-m="' + m[0] + '" value="' + esc(v) + '" placeholder="' + esc(last) + '" style="width:92px" aria-label="' + esc(t(m[1])) + '" autocomplete="off"><span class="v" style="width:28px">' + esc(mu(m)) + "</span></div>";

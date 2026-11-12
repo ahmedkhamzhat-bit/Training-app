@@ -24,7 +24,7 @@ function barChart(items, o) {
   o = o || {};
   const n = items.length;
   if (!n) return "";
-  const W = 320, H = 150, pl = o.unit ? 60 : 34, pr = 8, pt = 12, pb = 24, pw = W - pl - pr, ph = H - pt - pb;
+  const W = 320, H = 150, pl = o.unit ? 60 : 34, pr = 20, pt = 12, pb = 24, pw = W - pl - pr, ph = H - pt - pb;
   const mx = Math.max.apply(null, items.map((i) => i.v).concat([o.target || 0]));
   const top = o.int ? Math.max(2, Math.ceil(mx / 2) * 2) : niceMax(mx);
   const Y = (v) => pt + ph * (1 - v / top);

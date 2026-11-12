@@ -127,7 +127,7 @@ function pkMatch(n) {
 function exRowHtml(n, o) {
   o = o || {};
   const mus = musOf(n).p.map((m) => t("mus_" + m)).join(", ");
-  return '<button class="rowchk pkp" data-act="' + o.act + '" data-n="' + esc(n) + '"' + (o.sel != null ? ' aria-pressed="' + o.sel + '"' : "") + ">" + exIcon(n) + '<span class="grow"><span class="pn">' + esc(o.lab || n) + (o.used && o.used[ckey(n)] ? ' <span class="tag">●</span>' : "") + "</span>" + (mus ? '<span class="pkm">' + esc(mus) + "</span>" : "") + "</span>" + (o.sel != null ? '<span class="gchk' + (o.sel ? " on" : "") + '">' + (o.sel ? ICON.check : "") + "</span>" : '<span class="chev">›</span>') + "</button>";
+  return '<button class="rowchk pkp" data-act="' + o.act + '" data-n="' + esc(n) + '"' + (o.sel != null ? ' aria-pressed="' + o.sel + '"' : "") + ">" + exIcon(n) + '<span class="grow"><span class="pn">' + esc(o.lab || n) + "</span>" + (mus ? '<span class="pkm">' + esc(mus) + "</span>" : "") + "</span>" + (o.sel != null ? '<span class="gchk' + (o.sel ? " on" : "") + '">' + (o.sel ? ICON.check : "") + "</span>" : '<span class="chev">›</span>') + "</button>";
 }
 function pkRowsHtml() {
   const raw = (ui.pkQ || "").trim(), sel = ui.pkSel || [], all = exUsage().map((x) => x.name), used = exUsedKeys();

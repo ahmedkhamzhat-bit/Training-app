@@ -347,7 +347,7 @@ document.addEventListener("click", async (e) => {
     case "plan-menu": {
       const p = meta.plans.find((x) => x.id === D.id);
       if (!p) break;
-      sheet('<div class="bigh" style="padding:0 0 8px"><h2>' + esc(p.name) + '</h2><span style="margin-right:-8px">' + xb() + '</span></div><div class="btns" style="flex-direction:column"><button class="btn ghost" data-act="plan-edit" data-id="' + p.id + '">' + t("edit") + '</button><button class="btn ghost" data-act="dated-new" data-id="' + p.id + '">' + t("datedNew") + '</button><button class="btn ghost" data-act="plan-rm" data-id="' + p.id + '" style="color:var(--bad)">' + t("delShort") + "</button></div>");
+      sheet('<div class="bigh" style="padding:0 0 8px;position:relative;top:-10px"><h2>' + esc(p.name) + '</h2><span style="margin-right:-8px">' + xb() + '</span></div><div class="btns" style="flex-direction:column"><button class="btn ghost" data-act="plan-edit" data-id="' + p.id + '">' + t("edit") + '</button><button class="btn ghost" data-act="dated-new" data-id="' + p.id + '">' + t("datedNew") + '</button><button class="btn ghost" data-act="plan-rm" data-id="' + p.id + '" style="color:var(--bad)">' + t("delShort") + "</button></div>");
       break;
     }
     case "plan-rm": {
@@ -436,7 +436,8 @@ document.addEventListener("click", async (e) => {
       break;
     case "pex-bw":
       ui.plan.exercises[ei].bw = D.b === "1";
-      delete ui.plan.exercises[ei].nw;
+      if (D.b === "n") ui.plan.exercises[ei].nw = true;
+      else delete ui.plan.exercises[ei].nw;
       render();
       break;
     case "pex-sets": {
@@ -503,9 +504,20 @@ document.addEventListener("click", async (e) => {
       go("train", "logger");
       break;
     /* logger */
-    case "leave":
+    case "leave": {
+      if (active && active.editingId) {
+        if (editSnap(active) !== active.snap) {
+          const ok = await ask(t("editLeaveQ"), t("leaveBtn"), true);
+          if (!ok) break;
+        }
+        active = null;
+        persistActive();
+        go("account", "detail");
+        break;
+      }
       go("train", null);
       break;
+    }
     case "finish":
       finishSession();
       break;
@@ -832,6 +844,7 @@ document.addEventListener("click", async (e) => {
         })),
         u: Date.now()
       };
+      active.snap = editSnap(active);
       persistActive();
       ui.prevOpen = {};
       go("train", "logger");
@@ -924,7 +937,7 @@ document.addEventListener("click", async (e) => {
         break;
       }
       const wrap = b.closest(".sw");
-      const due = wrap && wrap.dataset.due !== "0";
+      const due = wrap && wrap.dataset.due === "1";
       const tg = pn($("#gTg").value);
       meta.goals.push({ id: uid(), text, created: todayStr(), deadline: due ? $("#gDue").value || "" : "", status: "active", closed: "", target: tg > 0 ? tg : null, unit: { r: t("uReps"), w: uW(), s: "s" }[wrap.dataset.un || ""] || "", cur: 0, note: "" });
       persistMeta();
@@ -1430,8 +1443,56 @@ document.addEventListener("click", async (e) => {
       break;
     }
     case "train-menu":
-      sheet("<h2>" + t("plans") + '</h2><div class="btns" style="flex-direction:column"><button class="btn ghost" data-act="plan-new">' + t("newPlan") + '</button><button class="btn ghost" data-act="folder-new">' + t("newFolder") + '</button><button class="btn ghost" data-act="dated-new">' + t("datedNew") + '</button><button class="btn" data-act="sheet-close">' + t("close") + "</button></div>");
+      sheet("<h2>" + t("plans") + '</h2><div class="btns" style="flex-direction:column"><button class="btn ghost" data-act="plan-new">' + t("newPlan") + '</button><button class="btn ghost" data-act="folder-new">' + t("newFolder") + '</button><button class="btn ghost" data-act="dated-new">' + t("datedNew") + '</button><button class="btn ghost" data-act="train-set">' + t("trainSet") + '</button><button class="btn" data-act="sheet-close">' + t("close") + "</button></div>");
       break;
+    case "train-set": {
+      closeSheets();
+      const seg = '<div class="seg">' + [["rir", "RIR"], ["rpe", "RPE"]].map((x) => '<button data-act="scale-set" data-v="' + x[0] + '" aria-pressed="' + (meta.scale === x[0]) + '">' + x[1] + "</button>").join("") + "</div>";
+      sheet('<div class="bigh" style="padding:0 0 8px"><h2>' + t("trainSet") + '</h2><span style="margin-right:-8px">' + xb() + '</span></div><div class="fld"><span class="lbl">' + t("scaleL") + "</span>" + seg + '</div><div class="btns" style="margin-top:16px"><button class="btn" data-act="sheet-close">' + t("close") + "</button></div>");
+      break;
+    }
+    case "scale-set": {
+      meta.scale = D.v === "rpe" ? "rpe" : "rir";
+      persistMeta();
+      b.closest(".seg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      break;
+    }
+    case "h-menu":
+      sheet('<div class="bigh" style="padding:0 0 8px"><h2>' + t("hShowT") + '</h2><span style="margin-right:-8px">' + xb() + '</span></div><div class="btns" style="flex-direction:column">' + [["all", "hShowAll"], ["s", "hShowW"], ["n", "hShowN"]].map((x) => '<button class="btn ' + ((ui.hf.show || "all") === x[0] ? "" : "ghost") + '" data-act="h-show" data-v="' + x[0] + '">' + t(x[1]) + "</button>").join("") + "</div>");
+      break;
+    case "h-show":
+      ui.hf.show = D.v;
+      closeSheets();
+      render();
+      break;
+    case "notes-del-on":
+      ui.noteSel = [];
+      render();
+      break;
+    case "notes-del-off":
+      ui.noteSel = null;
+      render();
+      break;
+    case "notes-pick": {
+      if (!ui.noteSel) break;
+      const q = ui.noteSel.indexOf(D.id);
+      if (q >= 0) ui.noteSel.splice(q, 1);
+      else ui.noteSel.push(D.id);
+      render();
+      break;
+    }
+    case "notes-del-go": {
+      const ids = ui.noteSel || [];
+      if (!ids.length) break;
+      const ok = await ask(t("noteDelManyQ", { n: ids.length }), t("delShort"), true);
+      if (ok) {
+        meta.notes = meta.notes.filter((x) => ids.indexOf(x.id) < 0);
+        ui.noteSel = null;
+        persistMeta();
+        render();
+      }
+      break;
+    }
     case "dated-new":
       closeSheets();
       openDatedSheet(D.id);
@@ -1583,7 +1644,7 @@ document.addEventListener("click", async (e) => {
     case "meas-add-open": {
       ui.measBack = { tab: ui.tab, screen: ui.screen };
       ui.mDate = todayStr();
-      ui.mVals = {};
+      ui.mVals = measFill(ui.mDate);
       go(ui.tab, "measadd");
       break;
     }

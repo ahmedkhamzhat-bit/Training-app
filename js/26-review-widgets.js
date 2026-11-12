@@ -15,7 +15,8 @@ function weekStrip(todayI, dn) {
       } else if (a.k === "rest") {
         lab = t("restDay");
         sh = t("restShort");
-      } else if (a.k === "note") lab = a.text;
+      } else if (a.k === "free") lab = t("workout");
+      else if (a.k === "note") lab = a.text;
     }
     c += '<button class="wd' + (st ? " " + st : "") + (i === todayI ? " today" : "") + '" data-act="day-edit" data-d="' + i + '" aria-label="' + esc(dn[i] + (lab ? ": " + lab : "") + (x.tag ? ", " + x.tag : "")) + '"><span class="wdn">' + esc(dn[i].slice(0, 3)) + "</span>" + (x.note ? '<b class="dot">★</b>' : "") + '<span class="wdl"' + (sh ? ' data-full="' + esc(lab) + '" data-short="' + esc(sh) + '"' : "") + ">" + esc(lab || "·") + "</span>" + (x.tag ? '<span class="wdt">' + esc(x.tag) + "</span>" : "") + "</button>";
   }

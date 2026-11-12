@@ -13,7 +13,7 @@ function ageStr(a) {
     const m = a % 10, c = a % 100;
     return a === 1 ? "1 rok" : m >= 2 && m <= 4 && !(c >= 12 && c <= 14) ? a + " lata" : a + " lat";
   }
-  return a + (a === 1 ? " year" : " years");
+  return a + " yo";
 }
 function applyDatalist() {
   $("#exnames").innerHTML = exNamesAll(true).map((n) => '<option value="' + esc(n) + '"></option>').join("");
@@ -142,6 +142,7 @@ function go(tab, screen) {
   const was = ui._d == null ? -1 : ui._d;
   if (tab) ui.tab = tab;
   ui.screen = screen || null;
+  ui.noteSel = null;
   render();
   winTo(0, 0);
   const d = depthNow(), wt = ui._t;
